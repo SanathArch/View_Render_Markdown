@@ -1,0 +1,1641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Base View Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Base View Console — OuTSDe visual system, light variant.
+   Palette, type and detailing taken from the OuTSDe deck's own
+   light sections (#F5F4F0 ground, #FFFFFF cards, #D8D6CE hairlines,
+   amber #E4A11B / #8A6410). Square corners throughout, Space Mono
+   for every label and readout, Poppins for headings and prose.
+   Committed single-theme light, as specified. Every colour explicit.
+   ============================================================ */
+:root{
+  --paper:#F5F4F0;
+  --card:#FFFFFF;
+  --inset:#FAFAF8;
+  --line:#D8D6CE;
+  --line-soft:#E2E0D8;
+  --line-strong:#C4C1B6;
+  --ink:#0A0A0A;
+  --ink-body:#4A4A46;
+  --ink-mute:#8A8A84;
+  --ink-faint:#A5A49C;
+  --accent:#E4A11B;
+  --accent-ink:#8A6410;
+  --accent-wash:#E4A11B1F;
+  --crit:#B4442F;
+  --ok:#4E7A4A;
+  --sans:'Poppins', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono:'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --grid:linear-gradient(rgba(10,10,10,.045) 1px,transparent 1px),
+         linear-gradient(90deg,rgba(10,10,10,.045) 1px,transparent 1px);
+}
+*{box-sizing:border-box;}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important;} }
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink-body);
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:300;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+button, input, select, textarea{font-family:inherit;}
+::selection{background:var(--accent);color:var(--ink);}
+:focus-visible{outline:2px solid var(--accent-ink); outline-offset:2px;}
+
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+/* ---------- top bar ---------- */
+.topbar{
+  flex:none;
+  display:flex;align-items:center;gap:14px;
+  padding:0 18px;height:60px;
+  background:var(--card);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:11px;flex:none;}
+.brand .mark{
+  width:20px;height:20px;flex:none;border-radius:50%;
+  background:radial-gradient(circle at 34% 32%, #FFD98A 0%, var(--accent) 46%, #8A6410 100%);
+}
+.brand .name{
+  font-family:var(--sans);font-weight:700;font-size:14px;
+  letter-spacing:-.02em;color:var(--ink);line-height:1.2;
+}
+.brand .ver{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-mute);margin-top:2px;
+}
+.topbar .spacer{flex:1;}
+.viewname{
+  background:var(--paper);border:1px solid var(--line);color:var(--ink);
+  padding:8px 12px;font-size:13px;font-weight:400;width:250px;flex:none;border-radius:0;
+}
+.viewname:focus{border-color:var(--accent);outline:none;}
+.viewname::placeholder{color:var(--ink-faint);font-weight:300;}
+.viewname:disabled{opacity:.45;}
+
+/* buttons — the deck's bracketed square tag */
+.btn{
+  background:transparent;border:1px solid var(--line-strong);color:var(--ink-body);
+  border-radius:0;padding:9px 16px;cursor:pointer;
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;flex:none;
+  transition:background .25s ease,border-color .25s ease,color .25s ease;
+}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-ink);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn.primary{
+  border-color:var(--accent);color:var(--accent-ink);background:transparent;
+}
+.btn.primary:hover:not(:disabled){background:var(--accent);color:var(--ink);}
+.btn.ghost{border-color:var(--line);}
+
+/* ---------- main split ---------- */
+.main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 404px;min-height:0;}
+@media (max-width:1040px){
+  body{overflow:auto;}
+  .app{height:auto;}
+  .main{grid-template-columns:1fr;}
+  .stage{min-height:70vh;}
+  .controls{max-height:none;border-left:none;border-top:1px solid var(--line);}
+}
+
+/* ---------- stage ---------- */
+.stage{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--paper);}
+
+.filmstrip{
+  flex:none;display:flex;align-items:center;gap:10px;
+  padding:11px 18px;border-bottom:1px solid var(--line);
+  overflow-x:auto;min-height:68px;background:var(--card);
+}
+.thumb{
+  position:relative;flex:none;width:64px;height:45px;overflow:hidden;
+  border:1px solid var(--line);cursor:pointer;background:var(--paper);padding:0;border-radius:0;
+  transition:border-color .25s ease;
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.thumb:hover{border-color:var(--line-strong);}
+.thumb.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+.thumb .dot{
+  position:absolute;right:3px;bottom:3px;width:6px;height:6px;
+  background:var(--accent);box-shadow:0 0 0 1.5px rgba(255,255,255,.9);
+}
+.thumb .kill{
+  position:absolute;top:0;right:0;width:16px;height:16px;line-height:14px;text-align:center;
+  background:rgba(255,255,255,.92);color:var(--ink-mute);
+  font-size:12px;border:none;cursor:pointer;padding:0;opacity:0;transition:opacity .15s;
+}
+.thumb:hover .kill{opacity:1;}
+.thumb .kill:hover{color:var(--crit);}
+.addbtn{
+  flex:none;width:64px;height:45px;border:1px dashed var(--line-strong);
+  background:transparent;color:var(--ink-faint);font-size:18px;cursor:pointer;line-height:1;
+  transition:.25s;border-radius:0;
+}
+.addbtn:hover{border-color:var(--accent);color:var(--accent-ink);}
+.strip-meta{
+  margin-left:auto;padding-left:16px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-mute);white-space:nowrap;text-align:right;line-height:1.8;
+}
+
+/* viewport — the deck's 72px hairline grid */
+.viewport{
+  flex:1;position:relative;min-height:0;display:flex;align-items:center;justify-content:center;
+  padding:24px;overflow:hidden;
+  background-color:var(--paper);
+  background-image:var(--grid);
+  background-size:72px 72px;
+}
+.drop-hint{
+  position:absolute;inset:20px;border:1px dashed var(--line-strong);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  color:var(--ink-mute);text-align:center;padding:24px;pointer-events:none;
+}
+.viewport.dragging .drop-hint{border-color:var(--accent);background:var(--accent-wash);}
+.drop-hint h2{
+  font-family:var(--mono);font-size:11px;margin:0;color:var(--accent-ink);
+  font-weight:400;text-transform:uppercase;letter-spacing:.28em;
+}
+.drop-hint p{
+  margin:0;max-width:44ch;font-size:14px;font-weight:300;line-height:1.75;color:var(--ink-body);
+}
+
+.frame{position:relative;max-width:100%;max-height:100%;display:none;border:1px solid var(--line);}
+.frame.on{display:block;}
+.frame img.base{display:block;max-width:100%;max-height:100%;width:auto;height:auto;}
+.frame .lay{position:absolute;inset:0;pointer-events:none;}
+.frame img.bloomcopy{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;mix-blend-mode:screen;pointer-events:none;}
+
+.vp-badge{
+  position:absolute;left:18px;bottom:16px;z-index:5;
+  font-family:var(--mono);font-size:9.5px;color:var(--ink-mute);letter-spacing:.06em;
+  background:rgba(255,255,255,.94);border:1px solid var(--line);
+  padding:6px 10px;
+}
+.vp-toggle{
+  position:absolute;right:18px;bottom:16px;z-index:5;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  background:rgba(255,255,255,.94);border:1px solid var(--line);color:var(--ink-mute);
+  padding:7px 12px;cursor:pointer;transition:.25s;border-radius:0;
+}
+.vp-toggle:hover{border-color:var(--accent);color:var(--accent-ink);}
+.vp-toggle[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-ink);}
+
+/* ---------- lightdeck ---------- */
+.lightdeck{
+  flex:none;display:flex;gap:22px;align-items:stretch;
+  padding:16px 18px;border-top:1px solid var(--line);background:var(--card);
+}
+.dialwrap{flex:none;display:flex;flex-direction:column;align-items:center;gap:7px;}
+#sundial{touch-action:none;cursor:grab;display:block;}
+#sundial:active{cursor:grabbing;}
+.dial-cap{
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);
+}
+/* the deck's hairline stat grid: 1px gap over a rule-coloured ground */
+.tiles{
+  flex:1;display:grid;gap:1px;min-width:0;
+  background:var(--line);border:1px solid var(--line);
+  grid-template-columns:repeat(auto-fit,minmax(92px,1fr));
+  align-content:stretch;
+}
+.tile{background:var(--card);padding:11px 12px;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+.tile .lbl{
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mute);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tile .val{
+  font-family:var(--mono);font-weight:700;font-size:17px;color:var(--ink);
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15;
+}
+.tile .val small{font-size:9.5px;font-weight:400;color:var(--ink-mute);letter-spacing:.06em;}
+.tile.warm .val{color:var(--accent-ink);}
+.tile.cool .val{color:var(--ink);}
+.swatch{width:100%;height:4px;margin-top:7px;border:1px solid rgba(10,10,10,.08);}
+
+/* ---------- controls panel ---------- */
+.controls{
+  background:var(--card);border-left:1px solid var(--line);
+  overflow-y:auto;min-height:0;
+}
+.controls.locked{opacity:.4;pointer-events:none;}
+details.sec{border-bottom:1px solid var(--line-soft);}
+details.sec > summary{
+  list-style:none;cursor:pointer;padding:15px 18px;
+  display:flex;align-items:center;gap:10px;user-select:none;
+  font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink-mute);background:var(--card);position:sticky;top:0;z-index:2;
+  transition:color .25s ease;
+}
+details.sec > summary::-webkit-details-marker{display:none;}
+details.sec > summary:hover{color:var(--accent-ink);}
+details.sec[open] > summary{color:var(--ink);border-bottom:1px solid var(--line-soft);}
+details.sec > summary .num{color:var(--accent-ink);flex:none;letter-spacing:.1em;}
+.chev{
+  width:7px;height:7px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;
+  transform:rotate(-45deg);transition:transform .25s ease;flex:none;
+}
+details.sec[open] .chev{transform:rotate(45deg);}
+summary .badge{
+  margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.06em;
+  color:var(--ink-faint);text-transform:none;
+}
+.secbody{padding:18px;display:flex;flex-direction:column;gap:17px;background:var(--card);}
+
+/* control atoms */
+.ctl{display:flex;flex-direction:column;gap:7px;}
+.ctl-head{display:flex;align-items:baseline;gap:8px;}
+.ctl-head label{
+  font-family:var(--mono);font-size:9.5px;color:var(--ink-mute);
+  letter-spacing:.15em;text-transform:uppercase;
+}
+.ctl-head .out{
+  margin-left:auto;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+}
+.ctl-head .out.accent{color:var(--accent-ink);}
+.hint{font-size:12px;font-weight:300;color:var(--ink-mute);line-height:1.7;}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;margin:0;cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:2px;
+  background:linear-gradient(90deg,var(--accent) 0 var(--fill,50%),var(--line) var(--fill,50%) 100%);
+}
+input[type=range]::-moz-range-track{height:2px;background:var(--line);}
+input[type=range]::-moz-range-progress{height:2px;background:var(--accent);}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:11px;height:11px;
+  background:var(--ink);border:none;margin-top:-4.5px;
+}
+input[type=range]::-moz-range-thumb{
+  width:11px;height:11px;background:var(--ink);border:none;border-radius:0;
+}
+input[type=range].kelvin::-webkit-slider-runnable-track{
+  background:linear-gradient(90deg,#FF7A18,#FFB765,#FFE0C0,#FFFFFF,#D6E6FF,#A9C8FF,#7FA9FF);
+  border:1px solid var(--line);height:4px;
+}
+input[type=range].kelvin::-moz-range-track{
+  background:linear-gradient(90deg,#FF7A18,#FFB765,#FFE0C0,#FFFFFF,#D6E6FF,#A9C8FF,#7FA9FF);
+  border:1px solid var(--line);height:4px;
+}
+input[type=range].kelvin::-moz-range-progress{background:transparent;}
+
+.seg{display:flex;flex-wrap:wrap;gap:5px;}
+.seg button{
+  flex:1 1 auto;min-width:fit-content;
+  background:transparent;border:1px solid var(--line);color:var(--ink-body);
+  border-radius:0;padding:7px 10px;font-size:11px;font-weight:400;cursor:pointer;white-space:nowrap;
+  transition:all .25s ease;
+}
+.seg button:hover{border-color:var(--line-strong);color:var(--ink);}
+.seg button[aria-pressed="true"]{
+  background:var(--accent);border-color:var(--accent);color:var(--ink);font-weight:500;
+}
+.seg.cool button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card);}
+
+/* scoped to the panel: a bare input[type=text] rule here would also
+   swallow the top-bar name field and blow out the header layout */
+.controls select,
+.controls input[type=text],
+.controls input[type=number]{
+  background:var(--paper);border:1px solid var(--line);color:var(--ink);
+  border-radius:0;padding:8px 10px;font-size:12.5px;font-weight:400;width:100%;
+}
+.controls select:focus,
+.controls input[type=text]:focus{border-color:var(--accent);outline:none;}
+.controls select{cursor:pointer;}
+.controls input[type=text]::placeholder{color:var(--ink-faint);font-weight:300;}
+
+.checks{display:flex;flex-wrap:wrap;gap:6px;}
+.chk{
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  background:transparent;border:1px solid var(--line);
+  padding:6px 10px;font-size:11px;color:var(--ink-body);transition:.25s;
+}
+.chk:hover{border-color:var(--line-strong);}
+.chk input{accent-color:var(--accent-ink);margin:0;width:12px;height:12px;cursor:pointer;}
+.chk.on{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-wash);}
+
+.presetrow{display:flex;flex-wrap:wrap;gap:5px;}
+.presetrow button{
+  background:transparent;border:1px solid var(--line);color:var(--ink-mute);
+  border-radius:0;padding:5px 10px;font-size:10px;cursor:pointer;font-family:var(--mono);
+  letter-spacing:.06em;transition:all .25s;
+}
+.presetrow button:hover{border-color:var(--accent);color:var(--accent-ink);}
+.grouplabel{
+  font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--ink-faint);display:flex;align-items:center;gap:10px;margin-top:2px;
+}
+.grouplabel::after{content:"";flex:1;height:1px;background:var(--line-soft);}
+
+/* material cards */
+.matcard{
+  background:var(--paper);border:1px solid var(--line);
+  padding:15px;display:flex;flex-direction:column;gap:13px;
+  transition:border-color .3s ease;
+}
+.matcard:hover{border-color:var(--line-strong);}
+.matcard .mhead{display:flex;align-items:center;gap:8px;}
+.matcard .mhead input{flex:1;background:var(--card)!important;font-weight:500!important;}
+.matcard .mhead button{
+  flex:none;background:transparent;border:1px solid var(--line);color:var(--ink-faint);
+  width:30px;height:32px;cursor:pointer;font-size:14px;line-height:1;border-radius:0;transition:.25s;
+}
+.matcard .mhead button:hover{border-color:var(--crit);color:var(--crit);}
+.wear-row{display:flex;align-items:center;gap:9px;}
+.wear-row .wname{
+  font-size:11px;color:var(--ink-mute);width:84px;flex:none;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.wear-row input[type=range]{flex:1;}
+.wear-row .wval{
+  font-family:var(--mono);font-size:10px;color:var(--ink-faint);width:34px;text-align:right;flex:none;
+  font-variant-numeric:tabular-nums;
+}
+.wear-row.active .wname{color:var(--ink);}
+.wear-row.active .wval{color:var(--accent-ink);font-weight:700;}
+.emptynote{
+  font-size:12.5px;font-weight:300;color:var(--ink-mute);border:1px dashed var(--line-strong);
+  padding:18px;text-align:center;line-height:1.75;
+}
+
+/* ---------- modal ---------- */
+.modal{
+  position:fixed;inset:0;z-index:50;background:rgba(10,10,10,.42);
+  display:none;align-items:center;justify-content:center;padding:28px;
+}
+.modal.on{display:flex;}
+.sheet{
+  background:var(--card);border:1px solid var(--line-strong);
+  width:min(900px,100%);max-height:88vh;display:flex;flex-direction:column;
+}
+.sheet header{
+  flex:none;display:flex;align-items:center;gap:14px;
+  padding:16px 20px;border-bottom:1px solid var(--line);
+}
+.sheet header h2{
+  margin:0;font-family:var(--mono);font-size:10px;text-transform:uppercase;
+  letter-spacing:.28em;font-weight:400;color:var(--ink-mute);
+}
+.sheet header .fname-input{
+  font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--accent-ink);
+  background:var(--paper);border:1px solid var(--line);border-radius:0;
+  padding:6px 9px;width:270px;letter-spacing:-.01em;
+}
+.sheet header .fname-input:focus{border-color:var(--accent);outline:none;}
+.sheet header .fname-input::selection{background:var(--accent);color:var(--ink);}
+.sheet header .spacer{flex:1;}
+.sheet .body{flex:1;overflow:auto;padding:0;min-height:0;background:var(--inset);}
+.sheet pre{
+  margin:0;padding:22px;font-family:var(--mono);font-size:11.5px;line-height:1.75;
+  color:var(--ink-body);white-space:pre-wrap;word-break:break-word;
+}
+.sheet footer{
+  flex:none;display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid var(--line);
+}
+.sheet footer .meta{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);margin-right:auto;
+}
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(14px);
+  background:var(--ink);border:1px solid var(--ink);color:#F5F4F0;
+  padding:11px 18px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;z-index:60;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--crit);border-color:var(--crit);}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+
+</style>
+</head>
+<body>
+
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <div class="name">Base View Console</div>
+        <div class="ver">Lookdev spec → render direction</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <input class="viewname" id="viewName" type="text" placeholder="Name this view…" disabled aria-label="View name">
+    <button class="btn ghost" id="resetBtn" disabled>[ Reset ]</button>
+    <button class="btn primary" id="exportBtn" disabled>[ Generate .md ]</button>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+
+      <div class="filmstrip" id="filmstrip">
+        <button class="addbtn" id="addBtn" title="Add base view image" aria-label="Add base view image">+</button>
+        <div class="strip-meta" id="stripMeta">no views loaded</div>
+      </div>
+
+      <div class="viewport" id="viewport">
+        <div class="drop-hint" id="dropHint">
+          <h2>Drop a base view image</h2>
+          <p>PNG or JPG. Every image you add keeps its own light, camera, material and grade setup — dial each one in, then export its spec as Markdown to pair with the image in Nano Banana.</p>
+        </div>
+        <div class="frame" id="frame">
+          <img class="base" id="baseImg" alt="Base view preview">
+          <img class="bloomcopy" id="bloomImg" alt="" aria-hidden="true">
+          <div class="lay" id="layTint"></div>
+          <div class="lay" id="layDir"></div>
+          <div class="lay" id="layGrain"></div>
+          <div class="lay" id="layVig"></div>
+        </div>
+        <div class="vp-badge" id="vpBadge"></div>
+        <button class="vp-toggle" id="previewToggle" aria-pressed="true">Preview: on</button>
+      </div>
+
+      <div class="lightdeck">
+        <div class="dialwrap">
+          <svg id="sundial" width="152" height="152" viewBox="0 0 152 152" role="slider"
+               tabindex="0" aria-label="Sun position: drag for azimuth and altitude"
+               aria-valuemin="0" aria-valuemax="90" aria-valuenow="12"></svg>
+          <div class="dial-cap">drag sun · arrows to nudge</div>
+        </div>
+        <div class="tiles" id="tiles"></div>
+      </div>
+
+    </div>
+
+    <div class="controls locked" id="controls" aria-label="View parameters"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="sheet">
+    <header>
+      <h2 id="modalTitle">Render direction</h2>
+      <input class="fname-input" id="mdName" type="text" spellcheck="false" aria-label="File name">
+      <div class="spacer"></div>
+      <button class="btn ghost" id="closeBtn">[ Close ]</button>
+    </header>
+    <div class="body"><pre id="mdOut"></pre></div>
+    <footer>
+      <span class="meta" id="mdMeta"></span>
+      <button class="btn" id="copyBtn">[ Copy markdown ]</button>
+      <button class="btn" id="dlAllBtn" style="display:none;">[ Save all ]</button>
+      <button class="btn primary" id="dlBtn">[ Save .md ]</button>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="fileInput" accept="image/*" multiple class="sr">
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
+const round = (v,d=0) => { const p=Math.pow(10,d); return Math.round(v*p)/p; };
+const uid = () => 'v'+Math.random().toString(36).slice(2,9);
+
+/* ============================================================
+   Reference data — the domain knowledge the tool encodes
+   ============================================================ */
+const F_STOPS = [1.4,2,2.8,4,5.6,8,11,16,22];
+const SHUTTERS = ['1/4000','1/2000','1/1000','1/500','1/250','1/125','1/60','1/30','1/15','1/8','1/4','1/2','1s','2s','8s','30s'];
+const ISOS = [50,100,200,400,800,1600,3200,6400];
+
+const TIME_PRESETS = {
+  'blue-hour':      {alt:-2, kelvin:9000, sky:'clear',        keyFill:1.5, shadowHard:8,  haze:30, ev:-1.0},
+  'sunrise':        {alt:3,  kelvin:2400, sky:'hazy',         keyFill:3,   shadowHard:22, haze:40, ev:-0.3},
+  'golden-am':      {alt:12, kelvin:3300, sky:'clear',        keyFill:4,   shadowHard:35, haze:20, ev:0},
+  'mid-morning':    {alt:38, kelvin:5000, sky:'partly-cloudy',keyFill:5,   shadowHard:60, haze:10, ev:0},
+  'high-noon':      {alt:78, kelvin:5600, sky:'clear',        keyFill:7,   shadowHard:88, haze:5,  ev:0.2},
+  'golden-pm':      {alt:10, kelvin:3100, sky:'clear',        keyFill:4,   shadowHard:32, haze:25, ev:0},
+  'dusk':           {alt:-4, kelvin:7800, sky:'hazy',         keyFill:1.2, shadowHard:5,  haze:35, ev:-1.4},
+  'overcast':       {alt:35, kelvin:6800, sky:'overcast',     keyFill:1.3, shadowHard:6,  haze:15, ev:-0.4},
+  'night':          {alt:-14,kelvin:4200, sky:'clear',        keyFill:2.5, shadowHard:45, haze:20, ev:-2.2}
+};
+const CAM_PRESETS = {
+  'landscape 24 f11':   {focal:24,  aperture:11,  distance:12, height:1.6},
+  'architectural 35':   {focal:35,  aperture:5.6, distance:6,  height:1.6},
+  'documentary 50':     {focal:50,  aperture:2.8, distance:3,  height:1.6},
+  'portrait 85':        {focal:85,  aperture:1.8, distance:2,  height:1.5},
+  'compression 135':    {focal:135, aperture:2.8, distance:8,  height:1.6},
+  'product macro 100':  {focal:100, aperture:8,   distance:0.5,height:0.4}
+};
+const GRADE_PRESETS = {
+  'neutral':        {contrast:100,saturation:100,warmth:0,  shadowLift:0, highlightRoll:20,grain:8, vignette:10,bloom:5},
+  'warm film':      {contrast:112,saturation:106,warmth:22, shadowLift:14,highlightRoll:55,grain:22,vignette:18,bloom:14},
+  'bleach bypass':  {contrast:145,saturation:48, warmth:-6, shadowLift:4, highlightRoll:15,grain:30,vignette:26,bloom:6},
+  'teal & orange':  {contrast:122,saturation:118,warmth:16, shadowLift:20,highlightRoll:40,grain:12,vignette:22,bloom:12},
+  'desaturated doc':{contrast:96, saturation:74, warmth:-10,shadowLift:8, highlightRoll:30,grain:18,vignette:8, bloom:3},
+  'clean product':  {contrast:104,saturation:104,warmth:2,  shadowLift:2, highlightRoll:25,grain:2, vignette:2, bloom:8}
+};
+
+const WEATHER_TYPES = [
+  ['rust','Rust / oxidation'], ['patina','Patina (verdigris)'], ['efflorescence','Efflorescence'],
+  ['moss','Moss / lichen'], ['mould','Mould / mildew'], ['grime','Airborne grime'],
+  ['uvfade','UV fade'], ['cracking','Cracking / crazing'], ['peeling','Peeling / flaking'],
+  ['chipping','Chipping / spalling'], ['scratches','Scratches / scuffs'], ['staining','Water staining'],
+  ['saltbloom','Salt bloom'], ['softening','Edge softening / erosion']
+];
+const PATTERNS = {
+  stone:['running-bond brick','flemish bond brick','stack bond','ashlar coursed','rubble masonry','cleft slate','honed limestone','split-face granite','travertine vein'],
+  concrete:['board-formed','smooth-troweled','exposed aggregate','bush-hammered','precast panel w/ form-tie holes','shuttered lift lines','polished terrazzo'],
+  metal:['brushed linear','hammered','diamond tread plate','corrugated profile','perforated','mill scale','powder-coated flat','patinated cast','galvanised spangle'],
+  wood:['quarter-sawn straight grain','plain-sawn cathedral grain','reclaimed saw marks','end-grain block','shiplap','tongue-and-groove','shou sugi ban char','burl figure'],
+  fabric:['plain weave','twill diagonal','herringbone','canvas duck','felted matte','velvet pile','linen slub','ribbed knit'],
+  glass:['float clear','low-iron','fluted / reeded','acid-etched frosted','wired safety','seeded antique','tinted bronze'],
+  plastic:['injection-mould satin','matte ABS grain','high-gloss','EDM spark texture','translucent diffuser'],
+  ceramic:['glazed gloss w/ crackle','matte unglazed terracotta','subway tile w/ glaze pooling','celadon crackle'],
+  skin:['fine pore structure','sun-weathered texture','freckled','scar tissue'],
+  foliage:['broadleaf canopy','needle conifer','dense clipped hedge','climbing vine','dry grass tussock'],
+  ground:['cobblestone sett','asphalt aggregate','compacted gravel','cracked earth','sand ripple','poured resin'],
+  liquid:['still mirror','wind chop','rain-beaded film','oil sheen']
+};
+const CATEGORIES = Object.keys(PATTERNS);
+const ENVIRONMENTS = ['coastal-salt','industrial-pollution','desert-uv','humid-tropical','freeze-thaw','urban-grime','agricultural','interior-dry','submerged'];
+const DISTRIBUTIONS = ['edge wear','high-contact points','gravity streaking','splash zone / base course','wind-driven (directional)','under-ledge sheltered','uniform ambient'];
+
+/* ============================================================
+   Physics / optics helpers — real formulae, not vibes
+   ============================================================ */
+function kelvinToRGB(k){
+  const t = clamp(k,1000,15000)/100; let r,g,b;
+  if(t<=66){
+    r=255;
+    g = 99.4708025861*Math.log(t) - 161.1195681661;
+    b = t<=19 ? 0 : 138.5177312231*Math.log(t-10) - 305.0447927307;
+  } else {
+    r = 329.698727446*Math.pow(t-60,-0.1332047592);
+    g = 288.1221695283*Math.pow(t-60,-0.0755148492);
+    b = 255;
+  }
+  return [clamp(r,0,255),clamp(g,0,255),clamp(b,0,255)].map(Math.round);
+}
+// Depth of field, full-frame circle of confusion 0.029mm
+function dofMetres(focalMM, N, distM){
+  const c=0.029, f=focalMM, s=distM*1000;
+  const H = (f*f)/(N*c) + f;
+  if(s >= H) return {near:(H/2)/1000, far:Infinity, total:Infinity};
+  const near = s*(H-f)/(H+s-2*f), far = s*(H-f)/(H-s);
+  return {near:near/1000, far:far/1000, total:(far-near)/1000};
+}
+function hFov(focalMM){ return 2*Math.atan(36/(2*focalMM))*180/Math.PI; }
+function shadowMultiple(altDeg){
+  if(altDeg<=0.5) return Infinity;
+  return 1/Math.tan(altDeg*Math.PI/180);
+}
+const COMPASS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+const compass = deg => COMPASS[Math.round(((deg%360)+360)%360/22.5)%16];
+
+/* ============================================================
+   State
+   ============================================================ */
+function defaults(){
+  return {
+    name:'', intent:'photoreal', aspect:'keep',
+    focal:35, aperture:5.6, shutter:'1/250', iso:100, distance:6, height:1.6,
+    angle:'eye-level', dutch:0, lens:'clean modern', distortion:0, ca:0,
+    sunAlt:12, sunAz:255, timeOfDay:'golden-am', kelvin:3300, sky:'clear',
+    keyFill:4, shadowHard:35, haze:20, bounce:'sky',
+    ev:0, contrast:100, saturation:100, warmth:0, shadowLift:0, highlightRoll:20,
+    grain:8, vignette:10, bloom:5,
+    materials:[],
+    composition:'rule of thirds', locationType:'exterior', season:'summer',
+    weather:'clear', period:'contemporary',
+    preserve:{geometry:true, layout:true, proportions:true, angle:true, text:true, identity:false},
+    notes:''
+  };
+}
+function newMaterial(n){
+  return {
+    id:uid(), zone:'surface '+n, category:'stone', pattern:'', roughness:0.65, metallic:0,
+    texScale:'', age:'weathered', years:25, dist:'gravity streaking', env:'urban-grime',
+    wear:{}
+  };
+}
+const views = [];          // {id, name, file, src, w, h, p}
+let active = -1;
+let previewOn = true;
+let downloadsNS = null;
+
+const view = () => active>=0 ? views[active] : null;
+const P = () => view() ? view().p : null;
+
+/* ---------- persistence: params only, keyed by filename ---------- */
+const LS = 'bvc.params.v1';
+let _saveT=null;
+function saveParams(){ clearTimeout(_saveT); _saveT=setTimeout(saveNow, 400); }
+function saveNow(){
+  try{
+    const store = {};
+    views.forEach(v => { store[v.file] = v.p; });
+    const prev = JSON.parse(localStorage.getItem(LS)||'{}');
+    localStorage.setItem(LS, JSON.stringify(Object.assign(prev, store)));
+  }catch(e){/* private mode, quota — non-essential */}
+}
+function loadParams(fileName){
+  try{
+    const store = JSON.parse(localStorage.getItem(LS)||'{}');
+    if(store[fileName]) return Object.assign(defaults(), store[fileName]);
+  }catch(e){}
+  return null;
+}
+
+/* ============================================================
+   Control schema — declarative, so every control is consistent
+   ============================================================ */
+const SECTIONS = [
+  { id:'direction', title:'Direction', open:true, controls:[
+    {k:'intent', label:'Render intent', type:'seg', options:['photoreal','cinematic','editorial','documentary','arch-viz']},
+    {k:'aspect', label:'Output aspect', type:'seg', options:['keep','3:2','16:9','1:1','4:5','21:9']},
+    {type:'group', label:'Must not change'},
+    {k:'preserve', type:'checks', options:[
+      ['geometry','Geometry'],['layout','Layout'],['proportions','Proportions'],
+      ['angle','Camera angle'],['text','Text & signage'],['identity','Faces / identity']
+    ]},
+    {type:'hint', text:'These become hard constraints in the exported prompt. Geometry and layout locked is what keeps an image model relighting your view instead of inventing a new one.'}
+  ]},
+
+  { id:'camera', title:'Camera', open:false, controls:[
+    {type:'presets', label:'Bodies & glass', map:'CAM'},
+    {k:'focal', label:'Focal length', type:'range', min:12, max:200, step:1, unit:'mm'},
+    {k:'aperture', label:'Aperture', type:'stops', stops:F_STOPS, fmt:v=>'f/'+v},
+    {k:'distance', label:'Subject distance', type:'range', min:0.3, max:60, step:0.1, unit:'m'},
+    {k:'height', label:'Camera height', type:'range', min:0.1, max:12, step:0.1, unit:'m'},
+    {k:'angle', label:'Angle', type:'seg', options:['worm','low','eye-level','high','birdseye','dutch']},
+    {k:'dutch', label:'Dutch tilt', type:'range', min:-30, max:30, step:1, unit:'°'},
+    {type:'group', label:'Exposure'},
+    {k:'shutter', label:'Shutter', type:'select', options:SHUTTERS},
+    {k:'iso', label:'ISO', type:'select', options:ISOS, num:true},
+    {type:'group', label:'Glass character'},
+    {k:'lens', label:'Rendering', type:'seg', options:['clean modern','vintage','anamorphic','tilt-shift','soft focus']},
+    {k:'distortion', label:'Distortion', type:'range', min:-5, max:5, step:0.1, unit:'%'},
+    {k:'ca', label:'Chromatic aberration', type:'range', min:0, max:100, step:1, unit:'%'}
+  ]},
+
+  { id:'sun', title:'Sun & Light', open:true, controls:[
+    {type:'presets', label:'Time of day', map:'TIME'},
+    {k:'sunAlt', label:'Sun altitude', type:'range', min:-18, max:90, step:1, unit:'°'},
+    {k:'sunAz', label:'Sun azimuth', type:'range', min:0, max:359, step:1, unit:'°', suffix:'az'},
+    {k:'kelvin', label:'Light colour temp', type:'range', min:1800, max:12000, step:50, unit:'K', cls:'kelvin'},
+    {k:'sky', label:'Sky condition', type:'seg', options:['clear','hazy','partly-cloudy','overcast','storm']},
+    {k:'keyFill', label:'Key : fill ratio', type:'range', min:1, max:16, step:0.5, fmt:v=>v+':1'},
+    {k:'shadowHard', label:'Shadow hardness', type:'range', min:0, max:100, step:1, unit:'%'},
+    {k:'haze', label:'Atmosphere / haze', type:'range', min:0, max:100, step:1, unit:'%'},
+    {k:'bounce', label:'Fill source', type:'seg', options:['sky','ground bounce','reflector','practical','none']}
+  ]},
+
+  { id:'grade', title:'Camera Filters & Grade', open:false, controls:[
+    {type:'presets', label:'Grade looks', map:'GRADE'},
+    {k:'ev', label:'Exposure', type:'range', min:-3, max:3, step:0.1, unit:' EV'},
+    {k:'contrast', label:'Contrast', type:'range', min:40, max:200, step:1, unit:'%'},
+    {k:'saturation', label:'Saturation', type:'range', min:0, max:200, step:1, unit:'%'},
+    {k:'warmth', label:'Warmth shift', type:'range', min:-100, max:100, step:1},
+    {k:'shadowLift', label:'Shadow lift', type:'range', min:0, max:100, step:1, unit:'%'},
+    {k:'highlightRoll', label:'Highlight rolloff', type:'range', min:0, max:100, step:1, unit:'%'},
+    {k:'grain', label:'Grain', type:'range', min:0, max:100, step:1, unit:'%'},
+    {k:'vignette', label:'Vignette', type:'range', min:0, max:100, step:1, unit:'%'},
+    {k:'bloom', label:'Bloom / halation', type:'range', min:0, max:100, step:1, unit:'%'}
+  ]},
+
+  { id:'materials', title:'Surfaces & Ageing', open:false, materials:true },
+
+  { id:'scene', title:'Scene & Environment', open:false, controls:[
+    {k:'composition', label:'Composition', type:'seg', options:['rule of thirds','golden ratio','centred symmetry','leading lines','framed']},
+    {k:'locationType', label:'Location', type:'seg', options:['exterior','interior','studio','underground','aerial']},
+    {k:'season', label:'Season', type:'seg', options:['spring','summer','autumn','winter']},
+    {k:'weather', label:'Weather', type:'seg', options:['clear','wet / after rain','raining','snow','fog','dust']},
+    {k:'period', label:'Period', type:'seg', options:['contemporary','mid-century','industrial-era','antique','futuristic']},
+    {k:'notes', label:'Director notes', type:'textarea', placeholder:'Anything the parameters above cannot say…'}
+  ]}
+];
+
+/* ============================================================
+   Build the controls panel
+   ============================================================ */
+function el(tag, cls, txt){ const n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n; }
+
+function buildPanel(){
+  const root = $('#controls');
+  root.innerHTML = '';
+  SECTIONS.forEach((sec,i) => {
+    const d = el('details','sec'); d.id='sec-'+sec.id; if(sec.open) d.open=true;
+    const s = el('summary');
+    s.appendChild(el('span','chev'));
+    s.appendChild(el('span','num', String(i+1).padStart(2,'0')+' /'));
+    s.appendChild(el('span',null,sec.title));
+    const badge = el('span','badge'); badge.id='badge-'+sec.id; s.appendChild(badge);
+    d.appendChild(s);
+    const body = el('div','secbody'); body.id='body-'+sec.id;
+    d.appendChild(body);
+    root.appendChild(d);
+    if(sec.materials) buildMaterialsSection(body);
+    else sec.controls.forEach(c => body.appendChild(buildControl(c)));
+  });
+}
+
+function buildControl(c){
+  if(c.type==='group'){ return el('div','grouplabel', c.label); }
+  if(c.type==='hint'){ return el('div','hint', c.text); }
+
+  if(c.type==='presets'){
+    const wrap = el('div','ctl');
+    const h = el('div','ctl-head'); h.appendChild(el('label',null,c.label)); wrap.appendChild(h);
+    const row = el('div','presetrow');
+    const map = c.map==='TIME'?TIME_PRESETS : c.map==='CAM'?CAM_PRESETS : GRADE_PRESETS;
+    Object.keys(map).forEach(name => {
+      const b = el('button',null,name);
+      b.type='button';
+      b.addEventListener('click',()=>applyPreset(c.map,name));
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  const wrap = el('div','ctl');
+  const head = el('div','ctl-head');
+  const lab = el('label',null,c.label||'');
+  const id = 'c-'+c.k;
+  lab.setAttribute('for',id);
+  head.appendChild(lab);
+  const out = el('span','out'); out.id='out-'+c.k;
+  if(c.type==='range'||c.type==='stops') { out.classList.add('accent'); head.appendChild(out); }
+  if(c.label) wrap.appendChild(head);
+
+  if(c.type==='range'){
+    const r = document.createElement('input');
+    r.type='range'; r.id=id; r.min=c.min; r.max=c.max; r.step=c.step;
+    if(c.cls) r.className=c.cls;
+    r.addEventListener('input',()=>{ set(c.k, parseFloat(r.value)); });
+    wrap.appendChild(r);
+  }
+  else if(c.type==='stops'){
+    const r = document.createElement('input');
+    r.type='range'; r.id=id; r.min=0; r.max=c.stops.length-1; r.step=1;
+    r.addEventListener('input',()=>{ set(c.k, c.stops[parseInt(r.value,10)]); });
+    wrap.appendChild(r);
+  }
+  else if(c.type==='seg'){
+    const g = el('div','seg'); g.id=id;
+    c.options.forEach(o=>{
+      const b=el('button',null,o); b.type='button'; b.dataset.v=o;
+      b.addEventListener('click',()=>set(c.k,o));
+      g.appendChild(b);
+    });
+    wrap.appendChild(g);
+  }
+  else if(c.type==='select'){
+    const s=document.createElement('select'); s.id=id;
+    c.options.forEach(o=>{ const op=document.createElement('option'); op.value=o; op.textContent=o; s.appendChild(op); });
+    s.addEventListener('change',()=>set(c.k, c.num?parseInt(s.value,10):s.value));
+    wrap.appendChild(s);
+  }
+  else if(c.type==='checks'){
+    const g=el('div','checks'); g.id=id;
+    c.options.forEach(([key,lbl])=>{
+      const l=el('label','chk');
+      const i=document.createElement('input'); i.type='checkbox'; i.dataset.k=key;
+      i.addEventListener('change',()=>{ const p=P(); if(!p)return; p[c.k][key]=i.checked; sync(); });
+      l.appendChild(i); l.appendChild(el('span',null,lbl));
+      g.appendChild(l);
+    });
+    wrap.appendChild(g);
+  }
+  else if(c.type==='textarea'){
+    const t=document.createElement('textarea'); t.id=id; t.rows=3;
+    t.placeholder=c.placeholder||'';
+    t.style.cssText='background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:0;padding:9px 10px;font-size:12.5px;font-weight:400;width:100%;resize:vertical;line-height:1.6;font-family:var(--sans);';
+    t.addEventListener('input',()=>{ const p=P(); if(p){p[c.k]=t.value; saveParams();} });
+    wrap.appendChild(t);
+  }
+  return wrap;
+}
+
+/* ---------- materials ---------- */
+function buildMaterialsSection(body){
+  const list = el('div'); list.id='matList';
+  list.style.cssText='display:flex;flex-direction:column;gap:12px;';
+  body.appendChild(list);
+  const add = el('button','btn ghost','[ + Add surface zone ]');
+  add.type='button'; add.style.width='100%';
+  add.addEventListener('click',()=>{
+    const p=P(); if(!p) return;
+    p.materials.push(newMaterial(p.materials.length+1));
+    renderMaterials(); sync(); renderStrip();
+  });
+  body.appendChild(add);
+  body.appendChild(el('div','hint','Keep zones granular — brick and its mortar weather at different rates and deserve separate entries even on the same wall.'));
+}
+
+function renderMaterials(){
+  const list = $('#matList'); if(!list) return;
+  const p = P();
+  list.innerHTML='';
+  if(!p || !p.materials.length){
+    list.appendChild(el('div','emptynote','No surface zones yet. Add one for each distinct material in frame — facade brick, window steel, roof tile, foreground planting.'));
+    return;
+  }
+  p.materials.forEach((m,idx)=>{
+    const card = el('div','matcard');
+
+    const head = el('div','mhead');
+    const nm = document.createElement('input');
+    nm.type='text'; nm.value=m.zone; nm.placeholder='zone name';
+    nm.addEventListener('input',()=>{ m.zone=nm.value; saveParams(); updateBadges(); });
+    head.appendChild(nm);
+    const del = el('button',null,'×'); del.type='button'; del.title='Remove zone';
+    del.setAttribute('aria-label','Remove '+m.zone);
+    del.addEventListener('click',()=>{ p.materials.splice(idx,1); renderMaterials(); sync(); renderStrip(); });
+    head.appendChild(del);
+    card.appendChild(head);
+
+    // category + pattern
+    const cat = document.createElement('select');
+    CATEGORIES.forEach(c=>{ const o=document.createElement('option'); o.value=c;o.textContent=c;cat.appendChild(o); });
+    cat.value=m.category;
+    card.appendChild(labelled('Material class', cat));
+
+    const patWrap = el('div','ctl');
+    const ph=el('div','ctl-head'); ph.appendChild(el('label',null,'Surface pattern')); patWrap.appendChild(ph);
+    const pat = document.createElement('input');
+    pat.type='text'; pat.value=m.pattern; pat.placeholder='e.g. running-bond brick';
+    const dlId='dl-'+m.id;
+    const dl=document.createElement('datalist'); dl.id=dlId;
+    const fillDL=()=>{ dl.innerHTML=''; (PATTERNS[cat.value]||[]).forEach(v=>{const o=document.createElement('option');o.value=v;dl.appendChild(o);}); };
+    fillDL();
+    pat.setAttribute('list',dlId);
+    pat.addEventListener('input',()=>{ m.pattern=pat.value; saveParams(); });
+    cat.addEventListener('change',()=>{ m.category=cat.value; fillDL(); saveParams(); });
+    patWrap.appendChild(pat); patWrap.appendChild(dl);
+    card.appendChild(patWrap);
+
+    card.appendChild(slider('Roughness', m.roughness, 0,1,0.01, v=>{m.roughness=v;}, v=>v.toFixed(2)+'  '+roughWord(v)));
+    card.appendChild(slider('Metallic', m.metallic, 0,1,0.01, v=>{m.metallic=v;}, v=>v.toFixed(2)));
+
+    const sc=document.createElement('input');
+    sc.type='text'; sc.value=m.texScale; sc.placeholder='e.g. brick unit 215 × 65 mm';
+    sc.addEventListener('input',()=>{ m.texScale=sc.value; saveParams(); });
+    card.appendChild(labelled('Real-world scale', sc));
+
+    card.appendChild(el('div','grouplabel','Ageing'));
+
+    const ageSeg = el('div','seg cool');
+    ['pristine','lightly used','weathered','derelict'].forEach(a=>{
+      const b=el('button',null,a); b.type='button';
+      b.setAttribute('aria-pressed', String(m.age===a));
+      b.addEventListener('click',()=>{
+        m.age=a;
+        ageSeg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', String(x.textContent===a)));
+        saveParams();
+      });
+      ageSeg.appendChild(b);
+    });
+    card.appendChild(labelled('Age category', ageSeg));
+
+    card.appendChild(slider('Years of exposure', m.years, 0,150,1, v=>{m.years=v;}, v=>v+' yr'));
+
+    const env=document.createElement('select');
+    ENVIRONMENTS.forEach(e=>{const o=document.createElement('option');o.value=e;o.textContent=e;env.appendChild(o);});
+    env.value=m.env; env.addEventListener('change',()=>{m.env=env.value; saveParams();});
+    card.appendChild(labelled('Causal environment', env));
+
+    const dist=document.createElement('select');
+    DISTRIBUTIONS.forEach(e=>{const o=document.createElement('option');o.value=e;o.textContent=e;dist.appendChild(o);});
+    dist.value=m.dist; dist.addEventListener('change',()=>{m.dist=dist.value; saveParams();});
+    card.appendChild(labelled('Wear distribution', dist));
+
+    const wl = el('div'); wl.style.cssText='display:flex;flex-direction:column;gap:3px;margin-top:2px;';
+    WEATHER_TYPES.forEach(([key,lbl])=>{
+      const row=el('div','wear-row');
+      const val = m.wear[key]||0;
+      if(val>0) row.classList.add('active');
+      row.appendChild(el('span','wname',lbl));
+      const r=document.createElement('input');
+      r.type='range'; r.min=0;r.max=100;r.step=1;r.value=val;
+      r.setAttribute('aria-label',lbl+' intensity');
+      r.style.setProperty('--fill', val+'%');
+      const out=el('span','wval', val?val+'%':'—');
+      r.addEventListener('input',()=>{
+        const v=parseInt(r.value,10);
+        if(v===0) delete m.wear[key]; else m.wear[key]=v;
+        out.textContent = v?v+'%':'—';
+        r.style.setProperty('--fill', v+'%');
+        row.classList.toggle('active', v>0);
+        saveParams(); updateBadges();
+      });
+      row.appendChild(r); row.appendChild(out);
+      wl.appendChild(row);
+    });
+    card.appendChild(wl);
+    list.appendChild(card);
+  });
+}
+function roughWord(v){ return v<0.15?'mirror':v<0.35?'glossy':v<0.6?'satin':v<0.85?'matte':'chalky'; }
+function labelled(text, node){
+  const w=el('div','ctl'); const h=el('div','ctl-head'); h.appendChild(el('label',null,text));
+  w.appendChild(h); w.appendChild(node); return w;
+}
+function slider(label, val, min,max,step, onSet, fmt){
+  const w=el('div','ctl');
+  const h=el('div','ctl-head'); h.appendChild(el('label',null,label));
+  const out=el('span','out accent', fmt?fmt(val):String(val)); h.appendChild(out);
+  w.appendChild(h);
+  const r=document.createElement('input');
+  r.type='range'; r.min=min;r.max=max;r.step=step;r.value=val;
+  r.setAttribute('aria-label',label);
+  r.style.setProperty('--fill', ((val-min)/(max-min)*100)+'%');
+  r.addEventListener('input',()=>{
+    const v=parseFloat(r.value); onSet(v);
+    out.textContent = fmt?fmt(v):String(v);
+    r.style.setProperty('--fill', ((v-min)/(max-min)*100)+'%');
+    saveParams();
+  });
+  w.appendChild(r); return w;
+}
+
+/* ============================================================
+   Setting values + syncing UI
+   ============================================================ */
+function set(k,v){
+  const p=P(); if(!p) return;
+  p[k]=v;
+  if(k==='sunAlt'||k==='sunAz') p.timeOfDay='custom';
+  sync();
+}
+function applyPreset(kind,name){
+  const p=P(); if(!p) return;
+  if(kind==='TIME'){
+    const t=TIME_PRESETS[name];
+    p.sunAlt=t.alt; p.kelvin=t.kelvin; p.sky=t.sky; p.keyFill=t.keyFill;
+    p.shadowHard=t.shadowHard; p.haze=t.haze; p.ev=t.ev; p.timeOfDay=name;
+  } else if(kind==='CAM'){
+    Object.assign(p, CAM_PRESETS[name]);
+  } else {
+    Object.assign(p, GRADE_PRESETS[name]);
+  }
+  sync();
+}
+
+function sync(){
+  const p=P();
+  $('#controls').classList.toggle('locked', !p);
+  $('#viewName').disabled=!p;
+  $('#exportBtn').disabled=!p;
+  $('#resetBtn').disabled=!p;
+  if(!p){ $('#frame').classList.remove('on'); $('#dropHint').style.display='flex'; drawDial(12,255); renderTiles(); renderStrip(); return; }
+
+  SECTIONS.forEach(sec=>{
+    if(sec.materials) return;
+    sec.controls.forEach(c=>{
+      if(!c.k) return;
+      const node = document.getElementById('c-'+c.k);
+      const out = document.getElementById('out-'+c.k);
+      if(!node) return;
+      if(c.type==='range'){
+        node.value=p[c.k];
+        node.style.setProperty('--fill', ((p[c.k]-c.min)/(c.max-c.min)*100)+'%');
+        if(out) out.textContent = c.fmt ? c.fmt(p[c.k]) : (round(p[c.k],2)+(c.unit||''));
+      } else if(c.type==='stops'){
+        const i=c.stops.indexOf(p[c.k]); node.value = i<0?0:i;
+        node.style.setProperty('--fill', ((i<0?0:i)/(c.stops.length-1)*100)+'%');
+        if(out) out.textContent = c.fmt(p[c.k]);
+      } else if(c.type==='seg'){
+        node.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v===String(p[c.k]))));
+      } else if(c.type==='select'){
+        node.value=p[c.k];
+      } else if(c.type==='checks'){
+        node.querySelectorAll('input').forEach(i=>{
+          i.checked = !!p[c.k][i.dataset.k];
+          i.closest('.chk').classList.toggle('on', i.checked);
+        });
+      } else if(c.type==='textarea'){
+        if(node.value!==p[c.k]) node.value=p[c.k];
+      }
+    });
+  });
+
+  $('#viewName').value = p.name;
+  drawDial(p.sunAlt, p.sunAz);
+  renderTiles();
+  applyPreview();
+  updateBadges();
+  saveParams();
+}
+
+function updateBadges(){
+  const p=P(); if(!p) return;
+  const b=(id,t)=>{ const n=document.getElementById('badge-'+id); if(n) n.textContent=t; };
+  b('camera', p.focal+'mm · f/'+p.aperture);
+  b('sun', round(p.sunAlt)+'° · '+compass(p.sunAz)+' · '+p.kelvin+'K');
+  b('grade', (p.ev>0?'+':'')+round(p.ev,1)+' EV · '+p.contrast+'%');
+  const wearCount = p.materials.reduce((a,m)=>a+Object.keys(m.wear).length,0);
+  b('materials', p.materials.length ? p.materials.length+' zone'+(p.materials.length>1?'s':'')+' · '+wearCount+' wear' : 'none');
+  b('direction', p.intent);
+  b('scene', p.locationType+' · '+p.weather);
+}
+
+/* ============================================================
+   Sun dial — polar sun path. angle = azimuth, radius = 90 − altitude
+   ============================================================ */
+const DIAL = {cx:76, cy:76, R:60};
+function altAzToXY(alt,az){
+  const r = DIAL.R * clamp((90-alt)/90, 0, 1.28);
+  const a = az*Math.PI/180;
+  return [DIAL.cx + r*Math.sin(a), DIAL.cy - r*Math.cos(a)];
+}
+function xyToAltAz(x,y){
+  const dx=x-DIAL.cx, dy=y-DIAL.cy;
+  const r=Math.hypot(dx,dy);
+  let az = Math.atan2(dx,-dy)*180/Math.PI; if(az<0) az+=360;
+  const alt = clamp(90 - (r/DIAL.R)*90, -18, 90);
+  return [Math.round(alt), Math.round(az)];
+}
+function drawDial(alt,az){
+  const svg=$('#sundial');
+  const [sx,sy]=altAzToXY(alt,az);
+  const [rgb]=[kelvinToRGB(P()?P().kelvin:3300)];
+  const sunCol = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+  const below = alt < 0;
+  const shadowAz = (az+180)%360;
+  const sm = shadowMultiple(alt);
+  const shLen = below ? 0 : clamp(sm*7, 0, DIAL.R*1.25);
+  const sa = shadowAz*Math.PI/180;
+  const ex = DIAL.cx + shLen*Math.sin(sa), ey = DIAL.cy - shLen*Math.cos(sa);
+
+  svg.innerHTML = `
+    <defs>
+      <radialGradient id="sunglow"><stop offset="0" stop-color="${sunCol}" stop-opacity=".6"/><stop offset="1" stop-color="${sunCol}" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect x="3" y="3" width="146" height="146" fill="#FFFFFF" stroke="#D8D6CE"/>
+    <circle cx="76" cy="76" r="${DIAL.R}" fill="none" stroke="#C4C1B6" stroke-dasharray="2 3"/>
+    <circle cx="76" cy="76" r="${DIAL.R*2/3}" fill="none" stroke="#E2E0D8"/>
+    <circle cx="76" cy="76" r="${DIAL.R/3}" fill="none" stroke="#E2E0D8"/>
+    <line x1="76" y1="8" x2="76" y2="144" stroke="#EDEBE4"/>
+    <line x1="8" y1="76" x2="144" y2="76" stroke="#EDEBE4"/>
+    <text x="76" y="19" fill="#8A8A84" font-size="8" font-family="Space Mono, monospace" text-anchor="middle">N</text>
+    <text x="136" y="79" fill="#8A8A84" font-size="8" font-family="Space Mono, monospace" text-anchor="middle">E</text>
+    <text x="76" y="141" fill="#8A8A84" font-size="8" font-family="Space Mono, monospace" text-anchor="middle">S</text>
+    <text x="16" y="79" fill="#8A8A84" font-size="8" font-family="Space Mono, monospace" text-anchor="middle">W</text>
+    <line x1="76" y1="76" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="#0A0A0A" stroke-width="4" opacity="${below?0:.75}"/>
+    <line x1="76" y1="76" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="#8A8A84" stroke-width="1" stroke-dasharray="3 3" opacity="${below?0:1}"/>
+    <circle cx="76" cy="76" r="2.5" fill="#0A0A0A"/>
+    <circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="20" fill="url(#sunglow)" opacity="${below?.2:1}"/>
+    <circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="7" fill="${below?'#D8D6CE':sunCol}" stroke="#0A0A0A" stroke-width="1.25"/>
+  `;
+  svg.setAttribute('aria-valuenow', String(Math.round(alt)));
+  svg.setAttribute('aria-valuetext', `altitude ${Math.round(alt)} degrees, azimuth ${Math.round(az)} degrees ${compass(az)}`);
+}
+(function dialInput(){
+  const svg=$('#sundial');
+  let dragging=false;
+  const toLocal=(e)=>{
+    const r=svg.getBoundingClientRect();
+    return [ (e.clientX-r.left)*152/r.width, (e.clientY-r.top)*152/r.height ];
+  };
+  const move=(e)=>{
+    if(!P()) return;
+    const [x,y]=toLocal(e);
+    const [alt,az]=xyToAltAz(x,y);
+    P().sunAlt=alt; P().sunAz=az; P().timeOfDay='custom';
+    sync();
+  };
+  svg.addEventListener('pointerdown',e=>{ if(!P())return; dragging=true; svg.setPointerCapture(e.pointerId); move(e); e.preventDefault(); });
+  svg.addEventListener('pointermove',e=>{ if(dragging) move(e); });
+  svg.addEventListener('pointerup',e=>{ dragging=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){}});
+  svg.addEventListener('keydown',e=>{
+    const p=P(); if(!p) return;
+    const big=e.shiftKey?10:1; let hit=true;
+    if(e.key==='ArrowRight') p.sunAz=(p.sunAz+big)%360;
+    else if(e.key==='ArrowLeft') p.sunAz=(p.sunAz-big+360)%360;
+    else if(e.key==='ArrowUp') p.sunAlt=clamp(p.sunAlt+big,-18,90);
+    else if(e.key==='ArrowDown') p.sunAlt=clamp(p.sunAlt-big,-18,90);
+    else hit=false;
+    if(hit){ e.preventDefault(); p.timeOfDay='custom'; sync(); }
+  });
+})();
+
+/* ============================================================
+   Readout tiles
+   ============================================================ */
+function renderTiles(){
+  const p=P(); const t=$('#tiles');
+  if(!p){ t.innerHTML='<div class="tile"><div class="lbl">status</div><div class="val" style="font-size:12px;">no view</div></div>'; return; }
+  const sm = shadowMultiple(p.sunAlt);
+  const shadow = p.sunAlt<=0 ? 'none' : (sm>25 ? '>25×' : round(sm,1)+'×');
+  const d = dofMetres(p.focal, p.aperture, p.distance);
+  const dof = d.total===Infinity ? '∞ (hyperfocal)' : (d.total<1 ? round(d.total*100,0)+' cm' : round(d.total,2)+' m');
+  const rgb = kelvinToRGB(p.kelvin);
+  const tiles = [
+    ['Altitude', round(p.sunAlt)+'<small>°</small>', 'warm'],
+    ['Bearing', round(p.sunAz)+'<small>° '+compass(p.sunAz)+'</small>', 'warm'],
+    ['Shadows', compass((p.sunAz+180)%360)+'<small> · '+shadow+'</small>', ''],
+    ['Temp', p.kelvin+'<small>K</small>', '', `rgb(${rgb.join(',')})`],
+    ['FOV', round(hFov(p.focal),1)+'<small>° h</small>', 'cool'],
+    ['DOF', '<small style="font-size:12.5px">'+dof+'</small>', 'cool'],
+    ['Key:fill', p.keyFill+'<small>:1</small>', ''],
+    ['Zones', p.materials.length+'<small> surf.</small>', '']
+  ];
+  t.innerHTML = tiles.map(([l,v,cls,sw])=>
+    `<div class="tile ${cls||''}"><div class="lbl">${l}</div><div class="val">${v}</div>${sw?`<div class="swatch" style="background:${sw}"></div>`:''}</div>`
+  ).join('');
+}
+
+/* ============================================================
+   Live preview — an honest approximation of the grade + light direction
+   ============================================================ */
+function applyPreview(){
+  const p=P(); const f=$('#frame');
+  if(!p){ return; }
+  const on = previewOn;
+  const img=$('#baseImg'), bloom=$('#bloomImg');
+
+  if(!on){
+    img.style.filter='none';
+    [ '#layTint','#layDir','#layGrain','#layVig' ].forEach(s=>$(s).style.opacity='0');
+    bloom.style.opacity='0';
+    $('#vpBadge').textContent = 'preview bypassed — source image';
+    return;
+  }
+
+  const bright = Math.pow(2, p.ev*0.5);
+  const shLift = 1 + p.shadowLift/500;
+  img.style.filter =
+    `brightness(${(bright*shLift).toFixed(3)}) contrast(${p.contrast/100}) saturate(${p.saturation/100})`;
+
+  // scene light tint: kelvin normalised against 6500K daylight, plus grade warmth shift
+  const effK = clamp(p.kelvin - p.warmth*22, 1500, 14000);
+  const a = kelvinToRGB(effK), ref = kelvinToRGB(6500);
+  const tint = a.map((c,i)=> clamp(Math.round(128*(c/Math.max(ref[i],1))),0,255));
+  const tintStrength = clamp(0.16 + Math.abs(6500-effK)/26000, 0, 0.55);
+  const lt=$('#layTint');
+  lt.style.cssText = `position:absolute;inset:0;pointer-events:none;background:rgb(${tint.join(',')});mix-blend-mode:soft-light;opacity:${tintStrength.toFixed(3)};`;
+
+  // directional light: raking angle + high key:fill ⇒ stronger falloff across the frame
+  const rake = clamp(1 - Math.max(p.sunAlt,0)/90, 0, 1);
+  const ratio = clamp((p.keyFill-1)/15, 0, 1);
+  const dirStrength = clamp(rake*ratio*0.55, 0, 0.5) * (p.sunAlt<0 ? 0.25 : 1);
+  const sunRGB = kelvinToRGB(p.kelvin);
+  const ld=$('#layDir');
+  ld.style.cssText = `position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;opacity:${dirStrength.toFixed(3)};`
+    + `background:linear-gradient(${p.sunAz}deg, rgb(14,20,38) 0%, rgb(96,100,112) 46%, rgb(${sunRGB.join(',')}) 100%);`;
+
+  // haze: lifts blacks, washes toward light colour
+  const hazeOp = (p.haze/100)*0.22;
+  ld.style.boxShadow = 'none';
+  const grainSVG = "data:image/svg+xml;utf8," + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(#n)' opacity='1'/></svg>`);
+  const lg=$('#layGrain');
+  lg.style.cssText = `position:absolute;inset:0;pointer-events:none;background-image:url("${grainSVG}");background-size:140px 140px;mix-blend-mode:overlay;opacity:${(p.grain/100*0.42).toFixed(3)};`;
+
+  const lv=$('#layVig');
+  const vg = p.vignette/100;
+  lv.style.cssText = `position:absolute;inset:0;pointer-events:none;`
+    + `background:radial-gradient(ellipse at 50% 48%, rgba(0,0,0,0) 42%, rgba(0,0,0,${(vg*0.72).toFixed(3)}) 100%),`
+    + `linear-gradient(0deg, rgba(190,205,225,${hazeOp.toFixed(3)}), rgba(190,205,225,${hazeOp.toFixed(3)}));`;
+
+  bloom.style.opacity = (p.bloom/100*0.5).toFixed(3);
+  bloom.style.filter = `blur(${(6+p.bloom/6).toFixed(1)}px) brightness(${(1+p.highlightRoll/220).toFixed(2)}) saturate(1.15)`;
+
+  const d = dofMetres(p.focal,p.aperture,p.distance);
+  $('#vpBadge').textContent =
+    `${p.focal}mm · f/${p.aperture} · ${p.shutter} · ISO ${p.iso}  |  sun ${round(p.sunAlt)}° ${compass(p.sunAz)} · ${p.kelvin}K  |  approximation only`;
+}
+
+/* ============================================================
+   Image loading + filmstrip
+   ============================================================ */
+function addFiles(files){
+  const list = Array.from(files).filter(f=>f.type.startsWith('image/'));
+  if(!list.length){ toast('Only image files can be loaded as a base view.', true); return; }
+  let firstNew = -1;
+  list.forEach(file=>{
+    const rd = new FileReader();
+    rd.onload = e=>{
+      const im = new Image();
+      im.onload = ()=>{
+        const stored = loadParams(file.name);
+        const p = stored || defaults();
+        if(!p.name) p.name = file.name.replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ');
+        const v = {id:uid(), name:p.name, file:file.name, src:e.target.result, w:im.naturalWidth, h:im.naturalHeight, p};
+        views.push(v);
+        if(active<0){ active = views.length-1; }
+        renderStrip(); selectView(active);
+        if(stored) toast('Restored saved settings for '+file.name);
+      };
+      im.src = e.target.result;
+    };
+    rd.readAsDataURL(file);
+  });
+}
+function renderStrip(){
+  const strip=$('#filmstrip');
+  strip.querySelectorAll('.thumb').forEach(n=>n.remove());
+  const add=$('#addBtn');
+  views.forEach((v,i)=>{
+    const b=el('button','thumb'+(i===active?' active':''));
+    b.type='button'; b.title=v.name||v.file;
+    b.setAttribute('aria-label','Select view '+(v.name||v.file));
+    const im=document.createElement('img'); im.src=v.src; im.alt='';
+    b.appendChild(im);
+    if(v.p.materials.length || v.p.timeOfDay==='custom') b.appendChild(el('span','dot'));
+    const k=el('button','kill','×'); k.type='button'; k.title='Remove'; k.setAttribute('aria-label','Remove '+(v.name||v.file));
+    k.addEventListener('click',ev=>{ ev.stopPropagation(); removeView(i); });
+    b.appendChild(k);
+    b.addEventListener('click',()=>selectView(i));
+    strip.insertBefore(b, add);
+  });
+  const configured = views.filter(v=>v.p.materials.length>0).length;
+  $('#stripMeta').innerHTML = views.length
+    ? `${views.length} view${views.length>1?'s':''} loaded<br>${configured} with surfaces defined`
+    : 'no views loaded';
+}
+function selectView(i){
+  active=i;
+  const v=views[i];
+  if(!v){ sync(); return; }
+  $('#baseImg').src=v.src; $('#bloomImg').src=v.src;
+  $('#frame').classList.add('on'); $('#dropHint').style.display='none';
+  renderMaterials();
+  sync();
+}
+function removeView(i){
+  views.splice(i,1);
+  if(active>=views.length) active=views.length-1;
+  if(!views.length){ active=-1; $('#frame').classList.remove('on'); $('#dropHint').style.display='flex'; renderMaterials(); }
+  renderStrip();
+  if(active>=0) selectView(active); else sync();
+}
+
+/* ============================================================
+   Markdown generation — the actual deliverable
+   ============================================================ */
+function yamlEsc(s){ return String(s).replace(/"/g,'\\"'); }
+function buildMarkdown(v){
+  const p=v.p;
+  const sm=shadowMultiple(p.sunAlt);
+  const d=dofMetres(p.focal,p.aperture,p.distance);
+  const dofTxt = d.total===Infinity ? 'near-infinite (at or past hyperfocal)' : (d.total<1? round(d.total*100,0)+' cm' : round(d.total,2)+' m');
+  const shadowDir = compass((p.sunAz+180)%360);
+  const shadowLen = p.sunAlt<=0 ? 'no direct cast shadows' : round(sm,1)+'× object height';
+  const hard = p.shadowHard>75?'hard-edged with a tight penumbra':p.shadowHard>45?'moderately defined':p.shadowHard>20?'soft with a broad penumbra':'very soft, near-shadowless';
+  const rgb=kelvinToRGB(p.kelvin);
+  const dofWord = d.total===Infinity?'deep':(d.total<0.5?'very shallow':d.total<2?'shallow':d.total<8?'moderate':'deep');
+  const keep = Object.entries(p.preserve).filter(([,x])=>x).map(([k])=>k);
+
+  const matYaml = p.materials.map(m=>{
+    const wears = Object.entries(m.wear).sort((a,b)=>b[1]-a[1]);
+    return [
+      `  - zone: "${yamlEsc(m.zone)}"`,
+      `    category: ${m.category}`,
+      `    surface_pattern: "${yamlEsc(m.pattern||'—')}"`,
+      `    roughness: ${m.roughness.toFixed(2)}   # ${roughWord(m.roughness)}`,
+      `    metallic: ${m.metallic.toFixed(2)}`,
+      m.texScale?`    real_world_scale: "${yamlEsc(m.texScale)}"`:null,
+      `    age_category: ${m.age}`,
+      `    years_of_exposure: ${m.years}`,
+      `    causal_environment: ${m.env}`,
+      `    wear_distribution: "${yamlEsc(m.dist)}"`,
+      wears.length?`    weathering:`:`    weathering: []`,
+      ...wears.map(([k,val])=>{
+        const lbl=(WEATHER_TYPES.find(w=>w[0]===k)||[k,k])[1];
+        return `      - type: ${k}\n        label: "${lbl}"\n        intensity_pct: ${val}`;
+      })
+    ].filter(Boolean).join('\n');
+  }).join('\n');
+
+  const matProse = p.materials.map(m=>{
+    const wears=Object.entries(m.wear).sort((a,b)=>b[1]-a[1]);
+    const wearTxt = wears.length
+      ? wears.map(([k,val])=>{
+          const lbl=(WEATHER_TYPES.find(w=>w[0]===k)||[k,k])[1].toLowerCase();
+          const grade = val>70?'heavy':val>40?'moderate':val>15?'light':'trace';
+          return `${grade} ${lbl} (${val}%)`;
+        }).join(', ')
+      : 'no visible weathering — keep this surface clean and unmarked';
+    return [
+      `### ${m.zone}`,
+      ``,
+      `- **Material:** ${m.category}${m.pattern?` — ${m.pattern}`:''}${m.texScale?`, at a real-world scale of ${m.texScale}`:''}.`,
+      `- **Surface response:** roughness ${m.roughness.toFixed(2)} (${roughWord(m.roughness)}), metallic ${m.metallic.toFixed(2)}. ${m.metallic>0.5?'Treat as a conductor — reflections take the surface colour and there is no diffuse base.':'Treat as a dielectric — specular highlights stay white/neutral over a coloured diffuse base.'}`,
+      `- **Age:** ${m.age}, reading as roughly ${m.years} years of exposure under ${m.env.replace(/-/g,' ')} conditions.`,
+      `- **Wear:** ${wearTxt}.`,
+      `- **Where the wear sits:** ${m.dist}. This distribution is not decorative — concentrate the damage where water, contact and sunlight actually reach, and leave sheltered areas comparatively clean.`
+    ].join('\n');
+  }).join('\n\n');
+
+  const directive = [
+    `Re-render the attached base image to the specification below.`,
+    keep.length ? `This is a **relighting and surfacing pass, not a redesign** — hold the source image's ${keep.join(', ')} exactly as they are and change only light, material, weathering and grade.` : '',
+    `Light the scene with a single dominant source at **${round(p.sunAlt)}° altitude** and **${round(p.sunAz)}° azimuth (${compass(p.sunAz)})**, colour temperature **${p.kelvin}K**${p.sunAlt<=0?' — the sun is below the horizon, so all illumination is indirect skylight':''}. Cast shadows must run toward **${shadowDir}** at **${shadowLen}**, ${hard}. Sky is ${p.sky}; key-to-fill ratio ${p.keyFill}:1 with fill coming from ${p.bounce}.`,
+    `Render through **${p.focal}mm at f/${p.aperture}**, ${p.shutter}, ISO ${p.iso}, focused at ${p.distance} m from a camera height of ${p.height} m, ${p.angle} angle${p.dutch?` with a ${p.dutch}° dutch tilt`:''}. Depth of field is ${dofWord} (≈ ${dofTxt} in focus); horizontal field of view ${round(hFov(p.focal),1)}°. Lens character: ${p.lens}.`,
+    `Grade to a ${p.intent} look: exposure ${p.ev>0?'+':''}${round(p.ev,1)} EV, contrast ${p.contrast}%, saturation ${p.saturation}%, ${p.warmth>0?'warmer':'cooler'} by ${Math.abs(p.warmth)} units, shadow lift ${p.shadowLift}%, highlight rolloff ${p.highlightRoll}%, grain ${p.grain}%, vignette ${p.vignette}%, bloom ${p.bloom}%.`
+  ].filter(Boolean).join('\n\n');
+
+  return `---
+base_view_id: "${yamlEsc(v.file.replace(/\.[^.]+$/,''))}"
+name: "${yamlEsc(p.name||v.name)}"
+source_image: "${yamlEsc(v.file)}"
+source_dimensions: "${v.w}×${v.h}"
+generated: "${new Date().toISOString().slice(0,10)}"
+target_model: "nano-banana (image + this spec)"
+render_intent: ${p.intent}
+output_aspect: "${p.aspect}"
+
+camera:
+  focal_length_mm: ${p.focal}
+  aperture_f: ${p.aperture}
+  shutter: "${p.shutter}"
+  iso: ${p.iso}
+  subject_distance_m: ${p.distance}
+  camera_height_m: ${p.height}
+  angle: "${p.angle}"
+  dutch_tilt_deg: ${p.dutch}
+  lens_character: "${p.lens}"
+  distortion_pct: ${p.distortion}
+  chromatic_aberration_pct: ${p.ca}
+  horizontal_fov_deg: ${round(hFov(p.focal),1)}
+  depth_of_field: "${dofTxt}"
+
+lighting:
+  time_of_day: "${p.timeOfDay}"
+  sun_altitude_deg: ${round(p.sunAlt)}
+  sun_azimuth_deg: ${round(p.sunAz)}
+  sun_bearing: "${compass(p.sunAz)}"
+  colour_temperature_k: ${p.kelvin}
+  light_rgb: [${kelvinToRGB(p.kelvin).join(', ')}]
+  sky_condition: "${p.sky}"
+  key_to_fill_ratio: "${p.keyFill}:1"
+  fill_source: "${p.bounce}"
+  shadow_direction: "${shadowDir}"
+  shadow_length: "${shadowLen}"
+  shadow_hardness_pct: ${p.shadowHard}
+  atmosphere_haze_pct: ${p.haze}
+
+grade:
+  exposure_ev: ${round(p.ev,1)}
+  contrast_pct: ${p.contrast}
+  saturation_pct: ${p.saturation}
+  warmth_shift: ${p.warmth}
+  shadow_lift_pct: ${p.shadowLift}
+  highlight_rolloff_pct: ${p.highlightRoll}
+  grain_pct: ${p.grain}
+  vignette_pct: ${p.vignette}
+  bloom_pct: ${p.bloom}
+
+materials:
+${p.materials.length ? matYaml : '  []'}
+
+scene:
+  composition: "${p.composition}"
+  location_type: "${p.locationType}"
+  season: "${p.season}"
+  weather: "${p.weather}"
+  period: "${p.period}"
+
+preserve_from_source: [${keep.map(k=>`"${k}"`).join(', ')}]
+---
+
+# ${p.name||v.name}
+
+## Directive
+
+${directive}
+
+## Lighting
+
+The sun sits **${round(p.sunAlt)}° above the horizon** on a bearing of **${round(p.sunAz)}° (${compass(p.sunAz)})**, so every cast shadow in frame runs toward **${shadowDir}** and stretches to **${shadowLen}**. Shadow edges are ${hard}. ${p.sunAlt<20&&p.sunAlt>0 ? 'This is raking light — it is doing the heavy lifting on surface relief, so mortar joints, panel seams, grain and dents must all read through their own micro-shadowing.' : p.sunAlt>65 ? 'This is near-overhead light — surface relief flattens out, contact shadows tighten to the base of objects, and top surfaces carry the exposure.' : 'This is mid-elevation light — relief is legible without being exaggerated.'}
+
+Light colour is **${p.kelvin}K** (approx. RGB ${rgb.join(', ')}). Sky is **${p.sky}**, key-to-fill **${p.keyFill}:1**, fill arriving from **${p.bounce}**. Atmospheric haze at ${p.haze}%${p.haze>40?' — visible aerial perspective, distant planes lose contrast and shift toward the sky colour':p.haze>15?' — subtle, only noticeable in the deepest distance':' — negligible, the air is clean'}.
+
+Every shadow in the image must agree with this one light direction. Mismatched shadow directions between objects are the single most common tell of a fake relight.
+
+## Camera
+
+**${p.focal}mm** at **f/${p.aperture}**, ${p.shutter}, ISO ${p.iso}. Camera ${p.height} m off the ground, ${p.distance} m from the subject, ${p.angle} angle${p.dutch?`, ${p.dutch}° dutch tilt`:''}. Horizontal field of view ${round(hFov(p.focal),1)}°; depth of field is ${dofWord}, with roughly **${dofTxt}** acceptably sharp around the focal plane.
+
+${p.focal<28?'Wide angle — expect perspective stretch at the frame edges and converging verticals unless the camera is level.':p.focal>85?'Telephoto — planes compress toward each other and background elements read larger relative to the subject.':'Normal perspective — spatial relationships read close to human vision.'} Lens character: **${p.lens}**${p.distortion?`, ${p.distortion}% distortion`:''}${p.ca?`, ${p.ca}% chromatic aberration on high-contrast edges`:''}.
+
+## Surfaces, Patterns & Ageing
+
+${p.materials.length ? matProse : '_No surface zones defined. Add at least one so the model knows what the materials actually are — without this it will invent them._'}
+
+## Colour Grade
+
+Exposure ${p.ev>0?'+':''}${round(p.ev,1)} EV · contrast ${p.contrast}% · saturation ${p.saturation}% · warmth ${p.warmth>0?'+':''}${p.warmth} · shadow lift ${p.shadowLift}% · highlight rolloff ${p.highlightRoll}% · grain ${p.grain}% · vignette ${p.vignette}% · bloom ${p.bloom}%.
+
+${[
+  p.grain>25?'Grain should read as film grain — organic, present in the midtones, not uniform digital noise across flat areas.':'',
+  p.bloom>25?'Halation should bloom only off genuine specular highlights and light sources, never as a global soft-focus wash.':'',
+  p.shadowLift>30?'Lifted shadows mean the blacks are milky rather than crushed — hold detail in the darkest areas.':'',
+  p.saturation<70?'Desaturation must come off the whole image evenly, not by draining one colour channel.':''
+].filter(Boolean).join(' ') || 'Keep the grade restrained — no single parameter above should announce itself.'}
+
+## Scene
+
+${p.composition} composition, ${p.locationType}, ${p.season}, ${p.weather}, ${p.period} period.${p.notes?`\n\n**Director notes:** ${p.notes}`:''}
+
+## Hold From The Source Image
+
+${keep.length ? keep.map(k=>`- **${k[0].toUpperCase()+k.slice(1)}** — unchanged from the base image.`).join('\n') : '_Nothing locked — the model is free to reinterpret the whole frame._'}
+
+## Avoid
+
+- Uniformly distributed dirt or noise standing in for weathering — wear follows water, contact and sunlight, never a flat overlay.
+- Shadows that disagree with the stated sun bearing (${shadowDir}), or objects with no contact shadow at all.
+- Plastic-looking surfaces: an over-smooth normal with no micro-roughness variation reads as CGI regardless of the texture applied.
+- HDR halos, over-sharpened edge contrast, or a global soft-focus glow standing in for bloom.
+- Re-composing, re-framing, or adding objects not present in the base image.
+
+---
+*Generated by Base View Console — pair this file with \`${v.file}\` when prompting.*
+`;
+}
+
+/* ============================================================
+   Export
+   ============================================================ */
+function toast(msg, isErr){
+  const t=$('#toast'); t.textContent=msg;
+  t.classList.toggle('err', !!isErr); t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'), 2600);
+}
+let currentMD='';
+function slugFor(v){
+  return (v.p.name||v.name||'base-view').toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'base-view';
+}
+function fileNameNow(){
+  let n = ($('#mdName').value||'').trim() || 'base-view';
+  if(!/\.md$/i.test(n)) n += '.md';
+  return n.replace(/[\\/:*?"<>|]/g,'-');
+}
+function openExport(){
+  const v=view(); if(!v) return;
+  currentMD = buildMarkdown(v);
+  $('#mdOut').textContent = currentMD;
+  $('#mdName').value = slugFor(v)+'.md';
+  const words = currentMD.trim().split(/\s+/).length;
+  const nz = v.p.materials.length;
+  $('#mdMeta').textContent = `${currentMD.length.toLocaleString()} chars · ${words.toLocaleString()} words · ${nz} surface zone${nz===1?'':'s'}`;
+  $('#dlAllBtn').style.display = views.length>1 ? 'inline-flex' : 'none';
+  $('#dlAllBtn').textContent = `[ Save all ${views.length} ]`;
+  $('#modal').classList.add('on');
+  $('#closeBtn').focus();
+}
+
+/* Saving works in three places, in order of preference:
+   1. inside the claude.ai artifact viewer, through the downloads capability
+      (a plain <a download> is inert there, so never fall through to it);
+   2. in a normal browser with the File System Access API — the viewer picks
+      the folder, which is what "save" should mean for a local tool;
+   3. anywhere else, an ordinary blob download to the downloads folder. */
+async function saveFile(filename, text){
+  if(downloadsNS){
+    try{
+      await downloadsNS.save({filename, data:text});
+      return 'saved';
+    }catch(err){
+      const code = err && err.code;
+      if(code==='declined') return 'cancelled';
+      if(code==='rate_limited') return 'busy';
+      return 'failed';
+    }
+  }
+  if(window.showSaveFilePicker){
+    try{
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types:[{description:'Markdown', accept:{'text/markdown':['.md']}}]
+      });
+      const w = await handle.createWritable();
+      await w.write(text);
+      await w.close();
+      return 'saved';
+    }catch(err){
+      if(err && err.name==='AbortError') return 'cancelled';
+      /* not permitted in this context — fall through to the blob download */
+    }
+  }
+  if(window.self !== window.top && !downloadsNS){
+    /* framed by a host that grants no save surface — a blob link is inert here */
+    return 'framed';
+  }
+  try{
+    const blob = new Blob([text], {type:'text/markdown;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    return 'saved';
+  }catch(e){ return 'failed'; }
+}
+$('#exportBtn').addEventListener('click', openExport);
+$('#closeBtn').addEventListener('click', ()=>$('#modal').classList.remove('on'));
+$('#modal').addEventListener('click', e=>{ if(e.target===$('#modal')) $('#modal').classList.remove('on'); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#modal').classList.remove('on'); });
+
+$('#copyBtn').addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText(currentMD); toast('Markdown copied — paste it with your base image.'); }
+  catch(e){
+    const r=document.createRange(); r.selectNodeContents($('#mdOut'));
+    const s=getSelection(); s.removeAllRanges(); s.addRange(r);
+    toast('Select-all is ready — press Ctrl/Cmd+C.');
+  }
+});
+$('#dlBtn').addEventListener('click', async ()=>{
+  const name = fileNameNow();
+  $('#dlBtn').disabled = true;
+  const r = await saveFile(name, currentMD);
+  $('#dlBtn').disabled = false;
+  if(r==='saved') toast('Saved '+name);
+  else if(r==='busy') toast('A save prompt is already open.', true);
+  else if(r==='framed') toast('Saving is blocked in this frame — copy the markdown instead.', true);
+  else if(r==='failed') toast('Could not save — copy the markdown instead.', true);
+});
+
+$('#dlAllBtn').addEventListener('click', async ()=>{
+  const btn = $('#dlAllBtn');
+  btn.disabled = true;
+  let saved = 0, stopped = false;
+  for(const v of views){
+    const md = buildMarkdown(v);
+    const nm = slugFor(v)+'.md';
+    let r = await saveFile(nm, md);
+    if(r==='busy'){ await new Promise(go=>setTimeout(go,1000)); r = await saveFile(nm, md); }
+    if(r==='cancelled'){ stopped = true; break; }
+    if(r==='saved') saved++;
+  }
+  btn.disabled = false;
+  toast(saved
+    ? `Saved ${saved} of ${views.length} spec${views.length>1?'s':''}${stopped?' — stopped early':''}.`
+    : 'Nothing saved.', !saved);
+});
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+$('#addBtn').addEventListener('click', ()=>$('#fileInput').click());
+$('#fileInput').addEventListener('change', e=>{ addFiles(e.target.files); e.target.value=''; });
+const vp=$('#viewport');
+['dragenter','dragover'].forEach(ev=>vp.addEventListener(ev,e=>{e.preventDefault();vp.classList.add('dragging');}));
+['dragleave','drop'].forEach(ev=>vp.addEventListener(ev,e=>{e.preventDefault();vp.classList.remove('dragging');}));
+vp.addEventListener('drop', e=>{ if(e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+vp.addEventListener('click', e=>{ if(!views.length) $('#fileInput').click(); });
+
+$('#viewName').addEventListener('input', e=>{
+  const v=view(); if(!v) return;
+  v.p.name=e.target.value; v.name=e.target.value;
+  renderStrip(); saveParams();
+});
+$('#previewToggle').addEventListener('click', ()=>{
+  previewOn=!previewOn;
+  $('#previewToggle').setAttribute('aria-pressed', String(previewOn));
+  $('#previewToggle').textContent = 'Preview: '+(previewOn?'on':'off');
+  applyPreview();
+});
+$('#resetBtn').addEventListener('click', ()=>{
+  const v=view(); if(!v) return;
+  const nm=v.p.name;
+  v.p = defaults(); v.p.name=nm;
+  renderMaterials(); sync();
+  toast('View reset to defaults.');
+});
+
+buildPanel();
+renderMaterials();
+sync();
+
+// downloads capability lights up the save button if this view can run it
+if(window.claude && typeof window.claude.use==='function'){
+  window.claude.use('downloads').then(ns=>{
+    downloadsNS=ns;
+  }).catch(()=>{});
+}
+})();
+</script>
+
+</body>
+</html>
